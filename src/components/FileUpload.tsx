@@ -1,5 +1,6 @@
 import React from 'react';
 import Font from './Font';
+import Warning from './Warning';
 
 interface FIProps {
     label: String,
@@ -7,7 +8,9 @@ interface FIProps {
 }
 
 interface FIState {
-    font: Font
+    font: Font,
+    warn: boolean,
+    warnMsg: string,
 }
 
 interface HTMLInputEvent extends React.ChangeEvent {
@@ -16,7 +19,9 @@ interface HTMLInputEvent extends React.ChangeEvent {
 
 class FileUpload extends React.Component<FIProps, FIState> {
     state = {
-        font: new Font()
+        font: new Font(),
+        warn: false,
+        warnMsg: '',
     }
 
     handleButtonClick = (): void => {
@@ -25,6 +30,7 @@ class FileUpload extends React.Component<FIProps, FIState> {
     }
 
     handleFileUploaded = (e: HTMLInputEvent): void => {
+        this.setState({warn: false, warnMsg: ''})
         let file = e.target.files![0]
         var buf;
         this.readFileAsArrayBuffer(file)
@@ -35,7 +41,15 @@ class FileUpload extends React.Component<FIProps, FIState> {
                 .then(initializedFont => {
                     this.setState({font: initializedFont})
                     this.props.fileHandler(initializedFont)
+                }).catch(err => {
+                    this.setState({
+                        warn: true,
+                        warnMsg: 'Not a usable font file.'
+                    })
                 })
+            })
+            .catch(err => {
+                console.log(`Error reading file as buffer: ${err}`)
             })
     }
 
@@ -56,7 +70,8 @@ class FileUpload extends React.Component<FIProps, FIState> {
         const fieldStyle: React.CSSProperties = {
             boxSizing: 'border-box',
             height: '40px',
-            width: '240px',
+            //width: '240px',
+            flexBasis: '70%',
             border: '1px solid #333',
             borderRadius: '5px 0 0 0',
             background: '#fff',
@@ -71,6 +86,7 @@ class FileUpload extends React.Component<FIProps, FIState> {
         const buttonStyle: React.CSSProperties = {
             boxSizing: 'border-box',
             height: '40px',
+            flexBasis: '30%',
             border: '1px solid #333',
             borderRadius: '0 5px 0 0',
             background: '#666',
@@ -79,7 +95,12 @@ class FileUpload extends React.Component<FIProps, FIState> {
         }
 
         return (
-            <div style={{display:'flex', marginTop: '20px'}}>
+            <div style={{
+                display:'flex',
+                flexWrap: 'wrap',
+                width: '360px',
+                marginTop: '20px'
+                }}>
                 <input
                     type="file"
                     id="file"
@@ -95,6 +116,10 @@ class FileUpload extends React.Component<FIProps, FIState> {
                 >
                     <span>{this.props.label}</span>
                 </div>
+                <Warning
+                    warn={this.state.warn}
+                    msg={this.state.warnMsg}
+                />
             </div>
         )
     }

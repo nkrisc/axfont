@@ -15,7 +15,6 @@ class Converter extends React.Component<CProps, CState>{
     }
 
     passFont = (font: Font): void => {
-		console.log(font)
         this.setState({font: font})
     }
 
