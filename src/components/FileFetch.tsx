@@ -1,8 +1,9 @@
 import React from 'react';
-import Font from './Font'
+import Warning from './Warning';
 
 interface FFState {
-    failed: Boolean
+    warn: boolean,
+    warnMsg: string,
 }
 
 interface FFProps {
@@ -16,26 +17,26 @@ interface FontResponse {
 
 export default class FileFetch extends React.Component<FFProps, FFState> {
     state = {
-        failed: false
+        warn: false,
+        warnMsg: '',
     }
 
     handleClick = (e: React.MouseEvent): void => {
+        this.setState({warn: false})
         var url = document.querySelector<HTMLInputElement>('#url')!.value;
+        if (!url) return;
         this.fetchFont(url).then(res => {
-            var font: Font = new Font();
-            console.log(res)
-            font.init(res.buffer, res.type)
-            .then(initializedFont => {
-                console.log(initializedFont)
-                this.props.fileHandler(initializedFont)
-            })
-        })
-        
+            this.props.fileHandler(res.buffer, res.type)
+        }).catch(err => {
+            console.log(err)
+            this.setState({warn: true, warnMsg: 'Couldn\'t find font file.'})
+        })    
     }
 
     fetchFont = function(url: string): Promise<FontResponse> {
+        //Check for protocol, and if not, add //
         var type: string;
-        return fetch(url)
+        return fetch(url.indexOf('//') >= 0 ? url : '//' + url)
         .then((response) => {
             if (!response.ok) {
                 throw new Error(response.statusText)
@@ -64,6 +65,10 @@ export default class FileFetch extends React.Component<FFProps, FFState> {
                 <button
                     onClick={this.handleClick}
                 >Get font</button>
+                <Warning 
+                    warn={this.state.warn}
+                    msg={this.state.warnMsg}
+                />
             </div>
         )
     }

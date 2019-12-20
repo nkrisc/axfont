@@ -1,5 +1,4 @@
 import React from 'react';
-import Font from './Font';
 import Warning from './Warning';
 
 interface FIProps {
@@ -8,7 +7,6 @@ interface FIProps {
 }
 
 interface FIState {
-    font: Font,
     warn: boolean,
     warnMsg: string,
 }
@@ -19,12 +17,11 @@ interface HTMLInputEvent extends React.ChangeEvent {
 
 class FileUpload extends React.Component<FIProps, FIState> {
     state = {
-        font: new Font(),
         warn: false,
         warnMsg: '',
     }
 
-    handleButtonClick = (): void => {
+    handleClick = (): void => {
         var input = document.querySelector<HTMLInputElement>('#file')!;
         input.click()
     }
@@ -32,21 +29,9 @@ class FileUpload extends React.Component<FIProps, FIState> {
     handleFileUploaded = (e: HTMLInputEvent): void => {
         this.setState({warn: false, warnMsg: ''})
         let file = e.target.files![0]
-        var buf;
         this.readFileAsArrayBuffer(file)
-            .then((value) => {
-                buf = value;
-                let font = new Font();
-                font.init(buf, file.name)
-                .then(initializedFont => {
-                    this.setState({font: initializedFont})
-                    this.props.fileHandler(initializedFont)
-                }).catch(err => {
-                    this.setState({
-                        warn: true,
-                        warnMsg: 'Not a usable font file.'
-                    })
-                })
+            .then((buf) => {
+                this.props.fileHandler(buf, file.name)
             })
             .catch(err => {
                 console.log(`Error reading file as buffer: ${err}`)
@@ -73,7 +58,7 @@ class FileUpload extends React.Component<FIProps, FIState> {
             //width: '240px',
             flexBasis: '70%',
             border: '1px solid #333',
-            borderRadius: '5px 0 0 0',
+            borderRadius: '5px 0 0 5px',
             background: '#fff',
             textOverflow: 'elipsis',
             whiteSpace: 'nowrap',
@@ -86,9 +71,10 @@ class FileUpload extends React.Component<FIProps, FIState> {
         const buttonStyle: React.CSSProperties = {
             boxSizing: 'border-box',
             height: '40px',
+            color: '#FFF',
             flexBasis: '30%',
             border: '1px solid #333',
-            borderRadius: '0 5px 0 0',
+            borderRadius: '0 5px 5px 0',
             background: '#666',
             fontSize: '16px',
             padding: '8px 10px 8px 10px'
@@ -108,14 +94,14 @@ class FileUpload extends React.Component<FIProps, FIState> {
                     onChange={this.handleFileUploaded}
                 />
                 <div style={fieldStyle} >
-                    {this.state.font ? this.state.font.src : ''}
+
                 </div>
-                <div
-                    onClick={this.handleButtonClick}
+                <button
+                    onClick={this.handleClick}
                     style={buttonStyle}
                 >
                     <span>{this.props.label}</span>
-                </div>
+                </button>
                 <Warning
                     warn={this.state.warn}
                     msg={this.state.warnMsg}
